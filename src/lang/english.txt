@@ -1,1 +1,0 @@
-STR_HELLO_WORLD    :Hello {COMPANY}!
