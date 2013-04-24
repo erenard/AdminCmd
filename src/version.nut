@@ -4,4 +4,4 @@
  * to be available when OpenTTD scans the info.nut file.
  */
 
-SELF_VERSION <- 0.1;
+SELF_VERSION <- 1;
