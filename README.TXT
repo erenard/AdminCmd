@@ -1,0 +1,1 @@
+OpenTTD gamescript for execution for commands thru the admin port.

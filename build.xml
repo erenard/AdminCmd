@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<project name="AdminCmd" basedir=".">
+	<target name="build" depends="clean">
+		<exec dir="src" executable="python">
+			<arg value="make_tar.py"/>
+		</exec>
+		<move todir="dist">
+			<fileset dir="src" includes="*.tar"/>
+		</move>
+	</target>
+	<target name="clean">
+		<delete>
+			<fileset dir="dist" includes="*.tar"/>
+		</delete>
+	</target>
+</project>
