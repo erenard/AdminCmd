@@ -3,7 +3,8 @@ enum GSCommand {
 	createNews,
 	addGoal,
 	removeGoal,
-	removeAllGoal
+	removeAllGoal,
+	setTownCargoGoal
 }
 
 class MainClass extends GSController {
@@ -15,13 +16,14 @@ function MainClass::Start() {
 	this.Sleep(1);
 
 	while (true) {
-		local loop_start_tick = GSController.GetTick();
+		//local loop_start_tick = GSController.GetTick();
 
 		this.HandleEvents();
 
 		// Loop with a frequency of five days
-		local ticks_used = GSController.GetTick() - loop_start_tick;
-		this.Sleep(1 * 74 - ticks_used);
+		//local ticks_used = GSController.GetTick() - loop_start_tick;
+		//this.Sleep(1 * 74 - ticks_used);
+		this.Sleep(1);
 	}
 }
 
@@ -35,53 +37,62 @@ function MainClass::Init() {
 function MainClass::HandleEvents() {
 	while (GSEventController.IsEventWaiting()) {
 		local e = GSEventController.GetNextEvent();
-		GSLog.Info("New Event: " + e.GetEventType());
 		switch (e.GetEventType()) {
 			case GSEvent.ET_ADMIN_PORT:
 				local data = GSEventAdminPort.Convert(e).GetObject();
-				if (data != null) {
-					if (data.c != null && data.a != null) {
-						this.ExecuteCommand(data.c, data.a);
-					} else {
-						GSAdmin.Send({error = "error while parsing data"});
-					}
+				if (data != null && ("i" in data) && ("c" in data) && ("a" in data)) {
+					local id = data.i;
+					local cmd = data.c;
+					local args = data.a;
+					this.ExecuteCommand(id, cmd, args);
 				} else {
-					GSAdmin.Send({error = "error while parsing json"});
+					GSAdmin.Send({exception = "Malformed json."});
 				}
 			break;
 		}
 	}
 }
 
-function MainClass::ExecuteCommand(cmd, args) {
+function MainClass::ExecuteCommand(id, cmd, args) {
 	try {
+		GSLog.Info("Command: " + id + " " + cmd + " " + args);
+		local data = false;
 		switch (cmd) {
 			case GSCommand.countIndustry:
-				GSAdmin.Send({data=GSIndustry.GetIndustryCount()});
+				data = GSIndustry.GetIndustryCount();
 			break;
 			case GSCommand.createNews:
-				GSNews.Create(args[0], args[1], args[2]);
+				data = GSNews.Create(args[0], args[1], args[2]);
 			break;
 			case GSCommand.addGoal:
-				GSAdmin.Send({goalId=GSGoal.New(args[0], args[1], args[2], args[3])});
+				data = GSGoal.New(args[0], args[1], args[2], args[3]);
 			break;
 			case GSCommand.removeGoal:
 				if (GSGoal.IsValidGoal(goalId)) {
-					GSAdmin.Send({goalId=GSGoal.Remove(args[0])});
+					data = GSGoal.Remove(args[0]);
 				}
 			break;
 			case GSCommand.removeAllGoal:
 				for (local goalId = 0; goalId < 255; goalId += 1) {
 					if (GSGoal.IsValidGoal(goalId)) {
-						GSGoal.Remove(goalId);
+						data = data | GSGoal.Remove(goalId);
 					}
 				}
 			break;
+			case GSCommand.setTownCargoGoal:
+				local town = args[0];
+				local townEffect = args[1];
+				if(GSTown.IsValidTown(town) && GSCargo.IsValidTownEffect(townEffect)) {
+					data = GSTown.SetCargoGoal(town, townEffect, args[2]);
+				}
+			break;
 			default:
-				GSAdmin.Send({exception = "Unknown command", cmd = cmd, args = args});
+				throw "Unknown command";
 			break;
 		}
+		GSLog.Info("GSAdmin.Send({id = "+id+", data = "+data+"})");
+		GSAdmin.Send({id = id, data = data});
 	} catch (exception) {
-		GSAdmin.Send({exception = exception, cmd = cmd, args = args});
+		GSAdmin.Send({id = id, exception = exception});
 	}
 }
