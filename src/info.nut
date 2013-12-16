@@ -9,7 +9,7 @@ class FMainClass extends GSInfo {
 	function CreateInstance()	{ return "MainClass"; }
 	function GetShortName()		{ return "ADMC"; }
 	function GetAPIVersion()	{ return "1.2"; }
-	function GetUrl()		{ return "http://github.com/timmy469"; }
+	function GetUrl()		{ return "https://github.com/erenard"; }
 	function GetSettings() {
 		AddSetting({
 			name = "log_level", 

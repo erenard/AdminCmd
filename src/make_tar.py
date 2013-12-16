@@ -32,3 +32,4 @@ os.system("mkdir " + dir_name);
 os.system("cp -Ra *.nut lang " + dir_name);
 os.system("tar -cf " + tar_name + " " + dir_name);
 os.system("rm -r " + dir_name);
+os.system("mv " + tar_name + " ~/.openttd/game");
